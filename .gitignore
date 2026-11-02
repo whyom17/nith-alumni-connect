@@ -1,0 +1,18 @@
+# Secrets
+.env
+*.pem
+*.jks
+key.properties
+# Go
+backend/bin/
+*.test
+# Flutter
+frontend/.dart_tool/
+frontend/build/
+frontend/.flutter-plugins*
+*.g.dart
+*.freezed.dart
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
