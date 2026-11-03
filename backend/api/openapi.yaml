@@ -1,0 +1,79 @@
+openapi: 3.1.0
+info:
+  title: NIT Hamirpur Alumni Connect API
+  version: 1.0.0
+  description: REST API for NIT Hamirpur Alumni Connect monorepo.
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+paths:
+  /healthz:
+    get:
+      summary: Liveness probe
+      description: Returns 200 OK when the application process is running.
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+
+  /readyz:
+    get:
+      summary: Readiness probe
+      description: Returns 200 OK when the application and its critical dependencies (e.g. database) are ready to handle traffic.
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    example: "ready"
+        '503':
+          description: Service unavailable (e.g. database ping failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+
+    ErrorDetail:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: "service_unavailable"
+        message:
+          type: string
+          example: "database is not ready"
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            database: "connection refused"

@@ -2,8 +2,6 @@
 
 A mobile app that connects NIT Hamirpur alumni with each other: verified profiles, a searchable directory, and an announcements board. Built for the college community only.
 
-> A good architecture is not the one with the most services. It is the simplest one that satisfies today's requirements while leaving sensible paths for tomorrow's growth.
-
 ## Why this exists
 
 Alumni connections are scattered across WhatsApp groups, LinkedIn, and personal contacts. Three people this app should serve:
@@ -116,17 +114,3 @@ The app uses the **Spiced Chai** palette (cream, cinnamon, nutmeg) in **light an
 - Skills in `.agents/skills/` load on demand based on their `description`.
 - Screens must match `docs/wireframes/` (see `wireframe-screen-specs`).
 - Always check the phase scope (`phase-scope-guard` skill) before adding a feature.
-
-## Decisions and open questions
-
-Resolved by the wireframes: contact is via WhatsApp (`wa.me`) and Email buttons on profiles; no in-app chat.
-
-Assumed, please confirm:
-- **Connect** needs mutual acceptance.
-- **Who posts announcements?** The wireframes show an author name but no compose button, so Phase 1 is admin-only.
-- **Home actions:** Share and Save ship in Phase 1; Like and Comment wait for Phase 2 posts.
-- **Contact visibility** covers phone and email, and both are shown only to accepted connections.
-- **Inbox** = connection requests + notifications (no messages, no push).
-- **Naming:** the tab says "Groups"; the drawer and planning doc say "Communities". Code uses `groups` for the feature.
-- **Current students:** the wireframe shows a 2028 batch. Are non-graduates allowed? Until decided, batch years are not restricted.
-- Profile photos: S3-compatible bucket (assumed).
