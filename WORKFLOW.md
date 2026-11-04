@@ -84,11 +84,11 @@ Backend
 - [x] `api/openapi.yaml` skeleton; CI workflow (vet, lint, test)
 
 Frontend
-- [ ] `flutter create` in `frontend/`; add dependencies from `frontend/AGENTS.md`
-- [ ] Folder structure, `AppColors`, light + dark `ThemeData`, `themeModeProvider`
-- [ ] go_router with the 4-tab shell (Home, Groups, Search, Profile) and drawer; placeholder screens
-- [ ] dio client reading `API_BASE_URL`; call `/healthz` and show the result on a debug screen
-- [ ] CI workflow (`flutter analyze`, `flutter test`)
+- [x] `flutter create` in `frontend/`; add dependencies from `frontend/AGENTS.md`
+- [x] Folder structure, `AppColors`, light + dark `ThemeData`, `themeModeProvider`
+- [x] go_router with the 4-tab shell (Home, Groups, Search, Profile) and drawer; placeholder screens
+- [x] dio client reading `API_BASE_URL`; call `/healthz` and show the result on a debug screen
+- [x] CI workflow (`flutter analyze`, `flutter test`)
 
 Skills: `go-backend-architecture`, `postgres-migrations-sqlc`, `flutter-architecture`, `flutter-theme-spiced-chai`, `deployment-low-cost`, `git-workflow`
 **Done when:** `make run` + `flutter run` on a real phone shows a successful health check, themes switch, CI is green.

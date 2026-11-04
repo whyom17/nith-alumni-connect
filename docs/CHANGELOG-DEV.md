@@ -24,7 +24,30 @@
 - Goose and sqlc installed as global Go binaries in `~/go/bin`.
 
 ### Open Questions / Notes
-- Flutter SDK is not currently detected on PATH on this environment. Need Flutter SDK installed / PATH configured to proceed with Frontend M0 tasks.
+- Resolved: Flutter SDK installed and available on PATH (`Flutter 3.47.9`, `Dart 3.13.7`).
 
 ### Next Task
-- Frontend M0: `flutter create` in `frontend/`, configure dependencies, Spiced Chai theme system, and 4-tab shell navigation with `/healthz` debug screen.
+- Frontend M0 Foundation complete. Ready for Phase 1 M1: Auth and session.
+
+## 2026-11-04: Phase 1 M0 Foundation (Frontend)
+
+### Tasks Completed
+- Added required dependencies to `frontend/pubspec.yaml` (Riverpod, go_router, dio, shared_preferences, flutter_secure_storage, freezed annotations, mocktail) and ran `flutter pub get`.
+- Built Spiced Chai design system tokens in `core/theme/app_colors.dart` (Cream `#FDFBD4`, Cinnamon `#D47E30`, Brown `#8D5A2B`, Nutmeg `#825E34`, Ink `#3B2712`, Espresso `#1C140D`, etc.).
+- Implemented `lightTheme` and `darkTheme` in `core/theme/app_theme.dart` with Material 3 component themes (FilledButton, Card, Chips, NavigationBar, Drawer, AppBar, Dividers).
+- Created `themeModeProvider` in `core/theme/theme_mode_provider.dart` using Riverpod Notifier, persisted via `shared_preferences`, with light/dark toggle.
+- Created `Dio` client provider in `core/network/api_client.dart` reading `API_BASE_URL` with typed domain error mapping to `AppFailure` (`NetworkFailure`, `UnauthorizedFailure`, `ForbiddenFailure`, `ValidationFailure`, `ServerFailure`).
+- Created `HealthRepository` and `healthCheckProvider` in `core/network/health_repository.dart` to probe `/healthz` and `/readyz`.
+- Built 4-tab application shell (`AppShell`) with `go_router` `StatefulShellRoute.indexedStack` (Home, Groups, Search, Profile) and drawer.
+- Built `HomeScreen` with hamburger, Inbox action, announcements placeholder, and live `/healthz` diagnostic card.
+- Built Phase 1 placeholders: `GroupsScreen` (with `ComingSoon` component), `SearchScreen`, `ProfileScreen`, `InboxScreen`, `SavedPostsScreen`, and `SettingsScreen`.
+- Built `AppDrawer` with user header, light/dark mode icon toggle, Saved Posts, Settings & Privacy, and Log Out in error token.
+- Created GitHub Actions CI workflow in `.github/workflows/frontend.yml`.
+- Wrote unit and widget tests: `dart analyze` has 0 issues, and all 10 `flutter test` cases pass.
+
+### Decisions Made
+- `HomeScreen` scaffold directly owns the `AppDrawer` and hamburger trigger as specified in `flutter-architecture`.
+- Default `API_BASE_URL` set to `http://10.0.2.2:8080` on mobile and `http://localhost:8080` on web/desktop via `const String.fromEnvironment('API_BASE_URL')`.
+
+### Next Task
+- Milestone 0 is complete. Propose Phase 1 M1: Auth and session.
