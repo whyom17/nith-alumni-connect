@@ -39,6 +39,7 @@ func New(p Params) *Server {
 	r.Use(chimiddleware.RealIP)
 	r.Use(appmiddleware.Recoverer(p.Logger))
 	r.Use(appmiddleware.RequestLogger(p.Logger))
+	r.Use(appmiddleware.CORS([]string{"*"}))
 
 	// Health and readiness endpoints
 	healthHandler := health.NewHandler(p.DBPinger)

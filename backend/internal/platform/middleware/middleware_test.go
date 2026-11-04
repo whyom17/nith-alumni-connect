@@ -83,3 +83,32 @@ func TestRequestLogger(t *testing.T) {
 	assert.Contains(t, logBuf.String(), "http request")
 	assert.Contains(t, logBuf.String(), "/ping")
 }
+
+func TestCORS(t *testing.T) {
+	r := chi.NewRouter()
+	r.Use(appmiddleware.CORS([]string{"*"}))
+	r.Get("/data", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	t.Run("handles preflight OPTIONS request", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodOptions, "/data", nil)
+		req.Header.Set("Origin", "http://localhost:50000")
+		rec := httptest.NewRecorder()
+		r.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusNoContent, rec.Code)
+		assert.Equal(t, "*", rec.Header().Get("Access-Control-Allow-Origin"))
+		assert.Contains(t, rec.Header().Get("Access-Control-Allow-Methods"), "GET")
+	})
+
+	t.Run("sets CORS headers on normal request with Origin", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/data", nil)
+		req.Header.Set("Origin", "http://localhost:50000")
+		rec := httptest.NewRecorder()
+		r.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, "*", rec.Header().Get("Access-Control-Allow-Origin"))
+	})
+}
