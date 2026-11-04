@@ -48,7 +48,7 @@ If the developer hasn't answered, proceed with the assumption stated in `PRD.md`
 Mark `[x]` when accepted by the developer.
 
 **Phase 1**
-- [ ] M0 Foundation
+- [x] M0 Foundation
 - [ ] M1 Auth and session
 - [ ] M2 Profile, onboarding, verification
 - [ ] M3 Search and profile view
