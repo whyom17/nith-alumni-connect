@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/theme_mode_provider.dart';
+import '../features/auth/presentation/providers/auth_provider.dart';
 
 /// The navigation Drawer accessible from the hamburger icon on the Home screen.
 class AppDrawer extends ConsumerWidget {
@@ -25,19 +26,20 @@ class AppDrawer extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Drawer Header with User Info and Theme Toggle
+            // User Header
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundColor: colorScheme.primary,
-                    child: Text(
+                    backgroundColor: AppColors.cinnamon.withAlpha(51),
+                    child: const Text(
                       'NA',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onPrimary,
+                      style: TextStyle(
+                        color: AppColors.brown,
                         fontWeight: FontWeight.bold,
+                        fontSize: 18,
                       ),
                     ),
                   ),
@@ -51,11 +53,9 @@ class AppDrawer extends ConsumerWidget {
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          'Class of 2024 | CSE',
+                          '2024 | CSE',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.secondary,
                           ),
@@ -108,11 +108,9 @@ class AppDrawer extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              onTap: () {
+              onTap: () async {
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Log Out will be wired in M1.')),
-                );
+                await ref.read(authNotifierProvider.notifier).logout();
               },
             ),
             const SizedBox(height: 8),

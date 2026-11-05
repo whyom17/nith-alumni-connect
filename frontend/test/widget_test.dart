@@ -2,13 +2,66 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nith_alumni_connect/app/app.dart';
 import 'package:nith_alumni_connect/core/network/health_repository.dart';
+import 'package:nith_alumni_connect/core/storage/token_storage.dart';
 import 'package:nith_alumni_connect/core/theme/theme_mode_provider.dart';
+import 'package:nith_alumni_connect/features/auth/data/models/auth_dto.dart';
+import 'package:nith_alumni_connect/features/auth/data/repositories/auth_repository.dart';
+import 'package:nith_alumni_connect/features/auth/domain/models/auth_state.dart';
+import 'package:nith_alumni_connect/features/auth/presentation/providers/auth_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class FakeAuthNotifier extends StateNotifier<AuthState>
+    implements AuthNotifier {
+  FakeAuthNotifier(super.initial);
+
+  @override
+  AuthRepository get authRepository => throw UnimplementedError();
+
+  @override
+  TokenStorage get tokenStorage => throw UnimplementedError();
+
+  @override
+  Future<void> initSession() async {}
+
+  @override
+  Future<AuthResponseDto> loginWithLinkedInCode({
+    required String code,
+    required String redirectUri,
+    String? codeVerifier,
+  }) async {
+    const dummyUser = AuthUserDto(
+      id: 'test-user',
+      email: 'test@nith.ac.in',
+      role: 'alumnus',
+      status: 'approved',
+      profileComplete: true,
+    );
+    return const AuthResponseDto(
+      accessToken: 'dummy-access',
+      refreshToken: 'dummy-refresh',
+      isNewUser: false,
+      user: dummyUser,
+    );
+  }
+
+  @override
+  Future<void> logout() async {
+    state = const AuthState.unauthenticated();
+  }
+}
 
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
   });
+
+  const authenticatedUser = AuthUserDto(
+    id: 'user-123',
+    email: 'alumnus@nith.ac.in',
+    role: 'alumnus',
+    status: 'approved',
+    profileComplete: true,
+  );
 
   testWidgets('App renders 4 navigation tabs and switches destinations',
       (tester) async {
@@ -19,12 +72,14 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           healthCheckProvider.overrideWith((ref) => Future.value('ok')),
+          authNotifierProvider.overrideWith(
+            (ref) => FakeAuthNotifier(const AuthState.authenticated(authenticatedUser)),
+          ),
         ],
         child: const AlumniConnectApp(),
       ),
     );
 
-    // Initial pump and settle
     await tester.pumpAndSettle();
 
     // Verify Home tab is selected by default
@@ -74,6 +129,9 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           healthCheckProvider.overrideWith((ref) => Future.value('ok')),
+          authNotifierProvider.overrideWith(
+            (ref) => FakeAuthNotifier(const AuthState.authenticated(authenticatedUser)),
+          ),
         ],
         child: const AlumniConnectApp(),
       ),
@@ -87,7 +145,7 @@ void main() {
 
     // Drawer should now be visible
     expect(find.text('NITH Alumnus'), findsOneWidget);
-    expect(find.text('Class of 2024 | CSE'), findsOneWidget);
+    expect(find.text('2024 | CSE'), findsOneWidget);
     expect(find.text('Saved Posts'), findsOneWidget);
     expect(find.text('Settings & Privacy'), findsOneWidget);
     expect(find.text('Log Out'), findsOneWidget);

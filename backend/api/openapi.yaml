@@ -49,8 +49,257 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /v1/auth/config:
+    get:
+      summary: Get public auth client configuration
+      description: Returns public client credentials (client_id, redirect_uri) required by the client to initiate OAuth.
+      responses:
+        '200':
+          description: Public auth configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthConfigResponse'
+
+  /v1/auth/linkedin/callback:
+    get:
+      summary: LinkedIn OAuth browser callback
+      description: Receives the authorization redirect from LinkedIn in the system browser and redirects into the mobile app custom scheme.
+      parameters:
+        - name: code
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: error
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: HTML redirect response opening the mobile application
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /v1/auth/linkedin:
+    post:
+      summary: Sign in or sign up with LinkedIn
+      description: Exchanges a LinkedIn authorization code (with PKCE) for an ID token, verifies user identity, provisions or updates the user account, and returns application JWT tokens.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkedInAuthRequest'
+      responses:
+        '200':
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: LinkedIn code exchange or token verification failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/auth/refresh:
+    post:
+      summary: Refresh access token
+      description: Rotates the provided refresh token and returns a new access token and new refresh token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Refresh token invalid, expired, or revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/auth/logout:
+    post:
+      summary: Log out user session
+      description: Revokes the specified refresh token and invalidates active session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '204':
+          description: Successfully logged out
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
+    AuthConfigResponse:
+      type: object
+      required:
+        - client_id
+        - redirect_uri
+      properties:
+        client_id:
+          type: string
+          description: Public LinkedIn client ID
+          example: "78abc123xyz"
+        redirect_uri:
+          type: string
+          description: Authorized redirect URI for mobile OAuth callback
+          example: "org.nith.alumni://callback"
+
+    LinkedInAuthRequest:
+      type: object
+      required:
+        - code
+        - redirect_uri
+      properties:
+        code:
+          type: string
+          description: LinkedIn authorization code
+          example: "AQR..."
+        code_verifier:
+          type: string
+          description: PKCE code verifier (if PKCE was used)
+          example: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+        redirect_uri:
+          type: string
+          description: The redirect URI used in the initial authorization request
+          example: "org.nith.alumni://callback"
+
+    AuthResponse:
+      type: object
+      required:
+        - access_token
+        - refresh_token
+        - is_new_user
+        - user
+      properties:
+        access_token:
+          type: string
+          description: Short-lived JWT access token (15 mins)
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refresh_token:
+          type: string
+          description: Rotating opaque refresh token
+          example: "9f82d1e2-b13a-42c2-8415-..."
+        is_new_user:
+          type: boolean
+          example: false
+        user:
+          $ref: '#/components/schemas/AuthUser'
+
+    AuthUser:
+      type: object
+      required:
+        - id
+        - email
+        - role
+        - status
+        - profile_complete
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        email:
+          type: string
+          format: email
+          example: "alumnus@example.com"
+        role:
+          type: string
+          enum: [alumnus, admin]
+          example: "alumnus"
+        status:
+          type: string
+          enum: [pending, approved, rejected, suspended]
+          example: "pending"
+        profile_complete:
+          type: boolean
+          example: false
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          example: "9f82d1e2-b13a-42c2-8415-..."
+
+    RefreshTokenResponse:
+      type: object
+      required:
+        - access_token
+        - refresh_token
+      properties:
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refresh_token:
+          type: string
+          example: "a81cd20e-8d2a-4efb-88a4-..."
+
+    LogoutRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          example: "9f82d1e2-b13a-42c2-8415-..."
+
     ErrorResponse:
       type: object
       required:

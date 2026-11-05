@@ -9,7 +9,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/nith-alumni-connect/backend/internal/auth"
 	"github.com/nith-alumni-connect/backend/internal/config"
+	platformdb "github.com/nith-alumni-connect/backend/internal/platform/db"
 	"github.com/nith-alumni-connect/backend/internal/platform/logger"
 	"github.com/nith-alumni-connect/backend/internal/platform/server"
 )
@@ -18,10 +20,30 @@ func main() {
 	cfg := config.Load()
 	log := logger.New(cfg.LogLevel, os.Stdout)
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	pool, err := platformdb.NewPool(ctx, cfg.DatabaseURL)
+	var authRepo auth.Repository
+	if err != nil {
+		log.Warn("database connection failed during startup; database-dependent routes will be degraded", "error", err)
+	} else {
+		defer pool.Close()
+		log.Info("connected to PostgreSQL database")
+		queries := platformdb.New(pool)
+		authRepo = auth.NewRepository(queries)
+	}
+
+	tokenManager := auth.NewTokenManager(cfg.JWTSecret)
+	linkedinClient := auth.NewLinkedInClient(cfg.LinkedInClientID, cfg.LinkedInClientSecret)
+	authService := auth.NewService(authRepo, tokenManager, linkedinClient)
+	authHandler := auth.NewHandler(authService, cfg.LinkedInClientID, cfg.LinkedInRedirectURI)
+
 	srv := server.New(server.Params{
-		Config:   cfg,
-		Logger:   log,
-		DBPinger: nil, // Will be wired to db.Pool in the database step
+		Config:      cfg,
+		Logger:      log,
+		DBPinger:    pool,
+		AuthHandler: authHandler,
 	})
 
 	// Start server in background goroutine
@@ -43,10 +65,10 @@ func main() {
 	case sig := <-shutdown:
 		log.Info("shutdown signal received", "signal", sig.String())
 
-		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-		defer cancel()
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer shutdownCancel()
 
-		if err := srv.Shutdown(ctx); err != nil {
+		if err := srv.Shutdown(shutdownCtx); err != nil {
 			log.Error("graceful shutdown failed, forcing termination", "error", err)
 			_ = srv.Shutdown(context.Background())
 			os.Exit(1)

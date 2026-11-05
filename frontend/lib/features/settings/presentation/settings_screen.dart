@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/presentation/providers/auth_provider.dart';
 
-/// Settings & Privacy screen (Phase 1 M7 placeholder).
-class SettingsScreen extends StatelessWidget {
+/// Settings & Privacy screen.
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -58,10 +60,8 @@ class SettingsScreen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Log Out will be wired in M1.')),
-              );
+            onTap: () async {
+              await ref.read(authNotifierProvider.notifier).logout();
             },
           ),
         ],

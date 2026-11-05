@@ -49,7 +49,7 @@ Mark `[x]` when accepted by the developer.
 
 **Phase 1**
 - [x] M0 Foundation
-- [ ] M1 Auth and session
+- [x] M1 Auth and session
 - [ ] M2 Profile, onboarding, verification
 - [ ] M3 Search and profile view
 - [ ] M4 Connections and contact privacy
@@ -97,15 +97,15 @@ Skills: `go-backend-architecture`, `postgres-migrations-sqlc`, `flutter-architec
 **Goal:** a user can sign up or log in with LinkedIn and stay logged in.
 
 Backend
-- [ ] Migrations: `refresh_tokens`; users get `linkedin_sub`, `status`, `role`
-- [ ] `POST /v1/auth/linkedin` (code exchange, ID-token verification, upsert user, `is_new_user`), `/auth/refresh` (rotating), `/auth/logout`
-- [ ] JWT middleware; `RequireApproved`, `RequireAdmin`; rate limit on `/auth/*`
-- [ ] Tests: token rotation and reuse detection, invalid ID token
+- [x] Migrations: `refresh_tokens`; users get `linkedin_sub`, `status`, `role`
+- [x] `POST /v1/auth/linkedin` (code exchange, ID-token verification, upsert user, `is_new_user`), `/auth/refresh` (rotating), `/auth/logout`
+- [x] JWT middleware; `RequireApproved`, `RequireAdmin`; rate limit on `/auth/*`
+- [x] Tests: token rotation and reuse detection, invalid ID token
 
 Frontend
-- [ ] Welcome, Create Account, Login screens (`wireframe-screen-specs`)
-- [ ] LinkedIn sign-in via app link; secure token storage; dio interceptor with refresh
-- [ ] Router redirects by auth state; Log Out clears everything
+- [x] Welcome, Create Account, Login screens (`wireframe-screen-specs`)
+- [x] LinkedIn sign-in via app link; secure token storage; dio interceptor with refresh
+- [x] Router redirects by auth state; Log Out clears everything
 
 Skills: `linkedin-auth-flow`, `flutter-api-integration`, `privacy-and-security`, `api-contract-openapi`
 **Done when:** fresh install, sign up, kill the app, reopen and still signed in; logout works; refresh works after access token expiry.

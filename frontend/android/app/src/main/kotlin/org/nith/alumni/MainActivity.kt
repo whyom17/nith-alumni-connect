@@ -1,4 +1,4 @@
-package `in`.ac.nith.alumni.nith_alumni_connect
+package org.nith.alumni
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/nith-alumni-connect/backend/internal/auth"
 	"github.com/nith-alumni-connect/backend/internal/config"
 	"github.com/nith-alumni-connect/backend/internal/health"
 	appmiddleware "github.com/nith-alumni-connect/backend/internal/platform/middleware"
@@ -25,9 +26,10 @@ type Server struct {
 
 // Params holds dependencies for creating a Server.
 type Params struct {
-	Config   *config.Config
-	Logger   *slog.Logger
-	DBPinger health.Pinger
+	Config      *config.Config
+	Logger      *slog.Logger
+	DBPinger    health.Pinger
+	AuthHandler *auth.Handler
 }
 
 // New constructs a new Server and configures routes and middleware.
@@ -45,6 +47,15 @@ func New(p Params) *Server {
 	healthHandler := health.NewHandler(p.DBPinger)
 	r.Get("/healthz", healthHandler.Healthz)
 	r.Get("/readyz", healthHandler.Readyz)
+
+	// Auth routes (with rate limiting on /v1/auth/*)
+	if p.AuthHandler != nil {
+		authLimiter := appmiddleware.NewRateLimiter(20, 3*time.Second)
+		r.Group(func(authRouter chi.Router) {
+			authRouter.Use(authLimiter.Limit)
+			p.AuthHandler.RegisterRoutes(authRouter)
+		})
+	}
 
 	httpServer := &http.Server{
 		Addr:         fmt.Sprintf(":%s", p.Config.Port),

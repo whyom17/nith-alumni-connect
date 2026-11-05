@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/nith-alumni-connect/backend/internal/auth"
 	"github.com/nith-alumni-connect/backend/internal/config"
 	"github.com/nith-alumni-connect/backend/internal/platform/server"
 	"github.com/stretchr/testify/assert"
@@ -58,5 +59,25 @@ func TestServer_HealthAndReadiness(t *testing.T) {
 		err := json.NewDecoder(rec.Body).Decode(&body)
 		require.NoError(t, err)
 		assert.Equal(t, "ready", body["status"])
+	})
+
+	t.Run("GET /v1/auth/config returns client config", func(t *testing.T) {
+		srvWithAuth := server.New(server.Params{
+			Config:      cfg,
+			Logger:      discardLogger,
+			DBPinger:    nil,
+			AuthHandler: auth.NewHandler(nil, "sample-client-id", "org.nith.alumni://callback"),
+		})
+
+		req := httptest.NewRequest(http.MethodGet, "/v1/auth/config", nil)
+		rec := httptest.NewRecorder()
+		srvWithAuth.Router().ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		var body map[string]string
+		err := json.NewDecoder(rec.Body).Decode(&body)
+		require.NoError(t, err)
+		assert.Equal(t, "sample-client-id", body["client_id"])
+		assert.Equal(t, "org.nith.alumni://callback", body["redirect_uri"])
 	})
 }

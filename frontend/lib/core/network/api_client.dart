@@ -1,14 +1,23 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../storage/token_storage.dart';
 import 'app_failure.dart';
+import 'auth_interceptor.dart';
 
 /// Base URL passed at compile time via `--dart-define=API_BASE_URL=...`.
-/// Defaults to Android emulator loopback `http://10.0.2.2:8080` (or `http://localhost:8080` on web/desktop).
-const String defaultApiBaseUrl = String.fromEnvironment(
-  'API_BASE_URL',
-  defaultValue: kIsWeb ? 'http://localhost:8080' : 'http://10.0.2.2:8080',
-);
+/// Defaults to Android emulator loopback `http://10.0.2.2:8080` on Android,
+/// or `http://localhost:8080` on web, Windows, macOS, and iOS simulator.
+const String _envBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+
+String get defaultApiBaseUrl {
+  if (_envBaseUrl.isNotEmpty) return _envBaseUrl;
+  if (kIsWeb) return 'http://localhost:8080';
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    return 'http://10.0.2.2:8080';
+  }
+  return 'http://localhost:8080';
+}
 
 /// Maps Dio errors into typed domain [AppFailure] instances.
 AppFailure mapDioException(DioException e) {
@@ -48,6 +57,7 @@ AppFailure mapDioException(DioException e) {
 
 /// Provides a preconfigured [Dio] client for backend API communication.
 final dioProvider = Provider<Dio>((ref) {
+  final tokenStorage = ref.watch(tokenStorageProvider);
   final dio = Dio(
     BaseOptions(
       baseUrl: defaultApiBaseUrl,
@@ -57,6 +67,16 @@ final dioProvider = Provider<Dio>((ref) {
       headers: const {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+      },
+    ),
+  );
+
+  dio.interceptors.add(
+    AuthInterceptor(
+      tokenStorage: tokenStorage,
+      dio: dio,
+      onSessionExpired: () {
+        // Handled through token clearing; auth state will sync
       },
     ),
   );

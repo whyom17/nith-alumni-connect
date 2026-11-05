@@ -8,6 +8,16 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type RefreshToken struct {
+	ID        pgtype.UUID        `json:"id"`
+	UserID    pgtype.UUID        `json:"user_id"`
+	TokenHash string             `json:"token_hash"`
+	RevokedAt pgtype.Timestamptz `json:"revoked_at"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
 type User struct {
 	ID          pgtype.UUID        `json:"id"`
 	LinkedinSub string             `json:"linkedin_sub"`
